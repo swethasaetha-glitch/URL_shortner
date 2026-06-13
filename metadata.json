@@ -1,0 +1,6 @@
+{
+  "name": "LinkPulse AI",
+  "description": "LinkPulse AI is an Advanced URL Shortener with Analytics - shorten links, track performance, and grow smarter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
