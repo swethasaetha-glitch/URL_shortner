@@ -1,212 +1,257 @@
-# LinkPulse AI - Advanced URL Shortener & Click Analytics Engine
+# ⚡ LinkPulse AI
 
-> **"Shorten Links. Track Performance. Grow Smarter."**
->
-> A production-ready, full-stack SaaS application built on **React (Vite)** and **Node.js (Express)**, featuring responsive glassmorphism designs, deep user geographics tracking, real-time Recharts dashboards, and Google Gemini AI smart slug recommendations.
+> **Shorten Links. Track Performance. Grow Smarter.**
 
----
-
-## 🚀 Features Suite
-
-### 1. Advanced Shortener Engine
-* **High Performance Redirects:** Sub-5 millisecond worldwide redirection transfers utilizing optimized schema indexing.
-* **Custom Alias Paths:** Assign memorable branding pathways (e.g., `/winter-discount`) to replace ugly long URLs.
-* **Link Expiry Calendars:** Automatically disable seasonal campaigns by attaching expiration dates and status selectors.
-* **Error Redirection Fallbacks:** Beautiful customized error screen shown for inactive, manually paused, or expired short links.
-
-### 2. Deep Visitor Click Analytics
-* **Real-time Charting Dashboards:** Responsive Recharts statistics mapping total hits, unique links, active paths, and expired links.
-* **Segmented Breakdown Diagnostics:**
-  * **Daily Chronology Trend:** Trailing 14-days clicked hit progression.
-  * **Device Spread:** Desktop vs. Mobile vs. Tablet distribution.
-  * **Client Browsers:** Chrome, Safari, Firefox, Edge, Opera, etc.
-  * **Worldwide Geography:** Top IP-geolocated visitor countries and cities.
-* **Real-time Auditing Logs:** Tabular recent visitor logs listing access platforms, browser engines, simulated geolocations, and auditing timestamps.
-
-### 3. Google Gemini AI Smart Alias Sugguster
-* **Intelligent Slug Parsing:** Integrated with server-side **Google Gemini 3.5 Flash** SDK. Automatically analyze destination URLs and recommend high-converting short tags and taxonomy keywords.
-* **Contextual Suggestions:** Feed additional campaign details (e.g., "promo launch") to guide Gemini's semantic alias selection.
-
-### 4. Interactive Assets & Developer Utilities
-* **Instant QR Vector Codes:** Dynamically outputs custom QR matrices for printed marketing materials, slides, or flyers, ready for instant PNG download.
-* **Interactive Dashboard Seeding:** Single-click "Seed Mock Dashboard" tab that generates realistic global trailing click trends, browser spreads, and geolocation logs instantly, providing a fully functional demo experience.
-
-### 5. Multi-Database Fail-safe Architecture
-* **Automatic Cloud Sync:** Seamless connection to Mongoose MongoDB Atlas clusters when supplied with connection secrets.
-* **File-based Local Fallback:** Automatically switches to a robust JSON-file persistence engine in sandboxed preview containers, providing a fully functional out-of-the-box experience with zero initial configurations.
+A full-stack URL shortener with real-time analytics, built as a production-ready SaaS. Features a dark glassmorphism UI, JWT authentication, and Recharts-powered dashboards.
 
 ---
 
-## 📐 Architecture & Workflow Diagram
+## Tech Stack
 
-This mermaid diagram outlines the LinkPulse AI ecosystem from user client entry to short link redirection telemetry tracking.
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite, Tailwind CSS, Framer Motion |
+| Charts | Recharts |
+| Icons | Lucide React |
+| Backend | Node.js, Express.js |
+| Database | MongoDB Atlas + Mongoose |
+| Auth | JWT + bcryptjs |
+| UA Parsing | ua-parser-js |
+
+---
+
+## Features
+
+- **URL Shortening** — instant short codes, custom aliases, expiry dates
+- **Analytics** — clicks, devices, browsers, OS, countries tracked per link
+- **Dashboard** — stat cards, searchable URL table, per-link analytics pages
+- **Charts** — 30-day area trend, device pie, browser pie, country bar chart
+- **Auth** — signup/login with JWT, bcrypt-hashed passwords, session persistence
+- **Security** — rate limiting, input validation, CORS restricted to frontend origin
+
+---
+
+## Architecture
 
 ```mermaid
 graph TD
-    %% Clients
-    user[Marketing User / Visitor] -->|1. Create Link / Access Slug| reverseProxy[Vite / Nginx Reverse Proxy]
-
-    %% Web Server
-    subgraph AppContainer [Express Full-Stack Container]
-        reverseProxy -->|3000 Ingress| expressApp[Express Server]
-        expressApp -->|Verify JWT| authMiddleware[Auth Middleware]
-        expressApp -->|Analyze target| geminiAPI[Google Gemini 3.5 Flash SDK]
-        expressApp -->|Parse headers| uaParser[User Agent & Geo Parsers]
+    subgraph Frontend ["Frontend (React + Vite — port 5173)"]
+        A[Landing Page] --> B[Auth Pages]
+        B --> C[Dashboard]
+        C --> D[Analytics Page]
     end
 
-    %% Database Strategy
-    subgraph DataEngine [Dual Storage Strategy]
-        dbService[Unified DB Client Service] -->|Fallback| localFile[Local Persistent JSON File]
-        dbService -->|True MongoDB| mongoDb[MongoDB Atlas with Mongoose]
+    subgraph Backend ["Backend (Node + Express — port 5000)"]
+        E[Auth Routes] --> F[JWT Middleware]
+        G[URL Routes] --> F
+        H[Analytics Routes] --> F
+        I[Redirect Controller]
     end
 
-    expressApp -->|CRUD Actions & redirs| dbService
-    
-    %% Redirect Output
-    expressApp -->|302 Redirect| targetUrl[Original Target Destination URL]
-    
-    %% Styling Classes
-    classDef primary fill:#6366F1,stroke:#8B5CF6,stroke-width:2px,color:#fff;
-    classDef secondary fill:#1E293B,stroke:#94A3B8,stroke-width:1px,color:#E2E8F0;
-    classDef highlight fill:#06B6D4,stroke:#0891B2,stroke-width:2px,color:#fff;
-    
-    class expressApp,dbService primary;
-    class authMiddleware,uaParser,localFile,mongoDb secondary;
-    class geminiAPI,targetUrl highlight;
+    subgraph Database ["MongoDB Atlas"]
+        J[(Users)]
+        K[(URLs)]
+        L[(Visits)]
+    end
+
+    C -->|REST API| G
+    D -->|REST API| H
+    B -->|REST API| E
+    F --> J
+    G --> K
+    H --> L
+    I --> K
+    I --> L
 ```
 
 ---
 
-## 🗄️ Database Schema Design
+## Database Schema
 
-Structured using Mongoose models (MongoDB Atlas) or mirrored identically in the Local JSON engine:
-
-### 1. Users Collection
-```json
+### Users
+```js
 {
-  "_id": "ObjectId",
-  "name": "String",
-  "email": "String (Unique Index)",
-  "passwordHash": "String (Bcrypt hashed password)",
-  "createdAt": "Date"
+  name:      String,   // display name
+  email:     String,   // unique, indexed
+  password:  String,   // bcrypt hashed (12 rounds)
+  createdAt: Date
 }
 ```
 
-### 2. URLs Collection
-```json
+### URLs
+```js
 {
-  "_id": "ObjectId",
-  "userId": "ObjectId (Reference 'User' Index)",
-  "originalUrl": "String (Target destination)",
-  "shortCode": "String (Unique Identifier Slug)",
-  "customAlias": "String (Optional custom slug)",
-  "clicks": "Number (Incremented counter)",
-  "createdAt": "Date",
-  "expiryDate": "Date (Optional campaign timeout)",
-  "status": "String (active | expired | inactive)"
+  userId:      ObjectId,                          // ref: User
+  originalUrl: String,
+  shortCode:   String,                            // unique 7-char nanoid
+  customAlias: String,                            // optional
+  title:       String,                            // optional label
+  clicks:      Number,                            // incremented on redirect
+  expiryDate:  Date,                              // null = never expires
+  status:      'active' | 'expired' | 'disabled',
+  createdAt:   Date
 }
 ```
 
-### 3. Visits Collection
-```json
+### Visits
+```js
 {
-  "_id": "ObjectId",
-  "urlId": "ObjectId (Reference 'Url' Index)",
-  "timestamp": "Date",
-  "browser": "String (Chrome / Safari / Firefox...)",
-  "os": "String (macOS / Windows / iOS / Android...)",
-  "device": "String (Desktop / Mobile / Tablet)",
-  "country": "String (User IP Country geolocation)",
-  "city": "String (User IP City geolocation)"
+  urlId:     ObjectId,                        // ref: URL, indexed
+  timestamp: Date,                            // indexed
+  browser:   String,
+  os:        String,
+  device:    'Desktop' | 'Mobile' | 'Tablet' | 'Unknown',
+  country:   String,
+  city:      String,
+  referrer:  String,
+  ip:        String
 }
 ```
 
 ---
 
-## 🔌 API Documentation
+## API Reference
 
-All REST APIs handle structured JSON inputs and enforce standard HTTP status codes.
+### Auth
+| Method | Endpoint | Auth | Body | Description |
+|--------|----------|:----:|------|-------------|
+| POST | `/api/auth/signup` | — | `{ name, email, password }` | Create account |
+| POST | `/api/auth/login` | — | `{ email, password }` | Sign in, returns JWT |
+| GET | `/api/auth/me` | ✓ | — | Get current user |
 
-| Method | Endpoint | Auth | Description | Payload Schema |
-| :--- | :--- | :---: | :--- | :--- |
-| **POST** | `/api/auth/register` | 🔓 | Register user | `{ name, email, password }` |
-| **POST** | `/api/auth/login` | 🔓 | Log in & exchange JWT token | `{ email, password }` |
-| **GET** | `/api/auth/profile`| 🔐 | Fetch currently authed user profile | _None_ |
-| **POST** | `/api/urls/shorten`| 🔐 | Create shortened URL | `{ originalUrl, customAlias?, expiryDate? }` |
-| **GET** | `/api/urls` | 🔐 | Fetch user links with computed statuses | _None_ |
-| **PATCH**| `/api/urls/:id` | 🔐 | Update short link details | `{ customAlias?, expiryDate?, status? }` |
-| **DELETE**| `/api/urls/:id` | 🔐 | Delete link and cascading visits | _None_ |
-| **POST** | `/api/urls/ai-suggest`| 🔐 | Gemini URL suggestions | `{ url, description? }` |
-| **POST** | `/api/urls/seed-demo`| 🔐 | Seed mock dashboard | _None_ |
-| **GET** | `/api/analytics` | 🔐 | Retrieve overall or single link analytics | `?urlId=...` *(Optional filter)* |
+### URLs
+| Method | Endpoint | Auth | Description |
+|--------|----------|:----:|-------------|
+| GET | `/api/urls` | ✓ | List user's URLs (paginated, searchable) |
+| POST | `/api/urls` | ✓ | Create short URL |
+| PUT | `/api/urls/:id` | ✓ | Update title, expiry, or status |
+| DELETE | `/api/urls/:id` | ✓ | Delete URL and all visit records |
+| GET | `/api/urls/stats` | ✓ | Dashboard stat totals |
+
+### Analytics
+| Method | Endpoint | Auth | Description |
+|--------|----------|:----:|-------------|
+| GET | `/api/analytics/overview` | ✓ | 30-day click totals across all links |
+| GET | `/api/analytics/:urlId` | ✓ | Full breakdown for a single URL |
+
+### Redirects
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/:shortCode` | Redirect to original URL and record visit |
 
 ---
 
-## 🛠️ Installation & Setup Guide
+## Project Structure
 
-Ensure you have **Node.js 18+** and **npm** installed on your developer machine.
-
-### 1. Clone & Install Dependencies
-```bash
-npm install
+```
+linkpulse/
+├── backend/
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── urlController.js
+│   │   ├── analyticsController.js
+│   │   └── redirectController.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── URL.js
+│   │   └── Visit.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── urls.js
+│   │   └── analytics.js
+│   ├── middleware/
+│   │   └── auth.js
+│   ├── server.js
+│   └── .env.example
+│
+└── frontend/
+    ├── src/
+    │   ├── components/ui/
+    │   │   ├── CreateUrlModal.jsx
+    │   │   ├── UrlTableRow.jsx
+    │   │   └── LoadingSpinner.jsx
+    │   ├── contexts/
+    │   │   └── AuthContext.jsx
+    │   ├── layouts/
+    │   │   └── DashboardLayout.jsx
+    │   ├── pages/
+    │   │   ├── LandingPage.jsx
+    │   │   ├── LoginPage.jsx
+    │   │   ├── SignupPage.jsx
+    │   │   ├── DashboardPage.jsx
+    │   │   └── AnalyticsPage.jsx
+    │   ├── services/
+    │   │   └── api.js
+    │   ├── App.jsx
+    │   ├── main.jsx
+    │   └── index.css
+    ├── index.html
+    ├── vite.config.js
+    └── tailwind.config.js
 ```
 
-### 2. Configure Environment Parameters
-Create a `.env` file in the root workspace (or configure inside your cloud host console):
+---
+
+## Environment Variables
+
+### `backend/.env`
 ```env
-# Google Gemini SDK API Key 
-GEMINI_API_KEY="AIzaSy..."
-
-# True MongoDB cloud cluster URI (Optional fallback exists)
-MONGO_URI="mongodb+srv://admin:pass@cluster.mongodb.net/linkpulse"
-
-# JWT encryption key
-JWT_SECRET="my_super_secret_key_12345"
-
-# Port configuration
-PORT=3000
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/linkpulse
+JWT_SECRET=replace_with_a_long_random_secret
+PORT=5000
+CLIENT_URL=http://localhost:5173
+BASE_URL=http://localhost:5000
 ```
 
-### 3. Run Development Server
-```bash
-npm run dev
-```
-The Express full-stack engine will launch and mount Vite dynamically, binding locally at **`http://localhost:3000`**.
-
-### 4. Production Compile & Serve
-```bash
-# Build the React static files and CJS bundle
-npm run build
-
-# Start Node.js production server
-npm run start
+### `frontend/.env`
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_BASE_URL=http://localhost:5000
 ```
 
 ---
 
-## 📦 Deployment Guide
+## Local Setup
 
-### Frontend Deployment (Vercel)
-Ideal for client-only SPAs. If deploying full-stack, configure Vercel with a `vercel.json` rewrite matching `/api/*` proxies, or build as standard node routes.
-For LinkPulse AI, standard build output compiles in `dist/`.
+**Prerequisites:** Node.js ≥ 18, a MongoDB Atlas cluster (free tier is fine)
 
-### Backend Deployment (Render / Cloud Run)
-1. Link your branch repository.
-2. Select target platform as **Web Service (Node)**.
-3. Configure environment variable secrets (`MONGO_URI`, `JWT_SECRET`, `GEMINI_API_KEY`).
-4. Set Build command: `npm run build`
-5. Set Start command: `npm run start`
+```bash
+# 1. Clone
+git clone https://github.com/yourname/linkpulse-ai.git
+cd linkpulse-ai
+
+# 2. Backend
+cd backend
+npm install
+cp .env.example .env     # fill in MONGO_URI and JWT_SECRET
+npm run dev              # runs on http://localhost:5000
+
+# 3. Frontend (new terminal)
+cd frontend
+npm install
+cp .env.example .env     # VITE_API_URL=http://localhost:5000/api
+npm run dev              # runs on http://localhost:5173
+```
 
 ---
 
-## 🏵️ Hackathon Presentation Guide
+## Deployment
 
-To maximize points under Hackathon evaluations, follow this narrative arc during your demonstration:
+### Backend → Render
+1. Push the `backend/` folder to GitHub
+2. Create a **Web Service** on [Render](https://render.com)
+3. Set **Root Directory** to `backend`
+4. Build command: `npm install` · Start command: `node server.js`
+5. Add all environment variables from `.env`
 
-1. **The Core Hook:** Load the gorgeous dark landing page. Type a long developer URL in the interactive demo box and hit shorten. Point out the elegant, responsive layout, dark background glassmorphism glows, and custom typography groupings.
-2. **Seamless Onboarding:** Click the sign-up call to action. Generate a test profile. Notice the immediate transition, toast animations, and login validations.
-3. **The Blank Canvas Resolution:** On first loading, the charts are empty. Rather than explaining what *could* be, click the **"Seed Mock Dashboard"** tab. Point out the instantaneous influx of realistic Click Timelines, Device Pie divisions, and real-time Globe Audit logs. Explain how the secondary Database Fail-safe successfully stores everything locally if Atlas URI keys are inactive.
-4. **Intelligent Campaign Generation:** Open the "Create Short Link" panel. Paste in a target blog or documentation URL. Click **"AI Generate"** and show off the Gemini-powered suggester returning custom lowercase slug recommendations and taxonomy keywords based on the target site. Select a recommendation and synchronize.
-5. **Campaign Stewardship:** Conduct copy-to-clipboard checks, open dynamic vector QR modalities, filter graphs for individual links, and demonstrate real-time redirection speeds in secondary browser tabs. Close by pointing out the clean, unified, enterprise-grade architecture.
-#   U R L _ s h o r t n e r  
- 
+### Frontend → Vercel
+1. Push the `frontend/` folder to GitHub
+2. Import the project on [Vercel](https://vercel.com)
+3. Set **Root Directory** to `frontend`
+4. Add environment variables pointing to your Render service URL
+
+---
+
+## License
+
+MIT © 2025 LinkPulse AI
