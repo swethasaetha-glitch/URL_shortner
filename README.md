@@ -252,6 +252,14 @@ npm run dev              # runs on http://localhost:5173
 
 ---
 
+Project Demonstration Video
+
+YouTube Demo:
+
+https://youtu.be/Tsfd3KZW_kA?si=V13Lr82hiCaSnqQp
+
+This project is a part of a hackathon run by https://katomaran.com
+
 ## License
 
 MIT © 2025 LinkPulse AI
